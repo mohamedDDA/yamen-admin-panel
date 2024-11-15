@@ -16,39 +16,8 @@ mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected successfully'))
   .catch(err => console.log('MongoDB connection error: ', err));
 
-// Define a schema for projects
-const projectSchema = new mongoose.Schema({
-  title: {
-    en: { type: String, required: true },
-    ar: { type: String, required: true }
-  },
-  slogan: {
-    en: { type: String, required: true },
-    ar: { type: String, required: true }
-  },
-  description: {
-    en: { type: String, required: true },
-    ar: { type: String, required: true }
-  },
-  location: {
-    en: { type: String, required: true },
-    ar: { type: String, required: true }
-  },
-  thumbnail: { type: String },
-  images: [{ type: String }],
-  building_area: { type: Number, required: true },
-  land_area: { type: Number, required: true },
-  units: { type: Number, required: true },
-  latitude: { type: Number, required: true },
-  longitude: { type: Number, required: true },
-  label: {
-    en: { type: String, required: true },
-    ar: { type: String, required: true }
-  }
-});
-
-// Create a model for the project schema
-const Project = mongoose.model('Project', projectSchema);
+// Import the Project model
+const Project = require('./models/Project');
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
@@ -64,20 +33,38 @@ app.get('/projects', async (req, res) => {
   }
 });
 
-// GET: Fetch a single project by ID
+// GET: Fetch a single project by ID from the projects array
 app.get('/projects/:id', async (req, res) => {
   try {
-    const project = await Project.findById(req.params.id); // Fetch a specific project by ID
-    if (project) {
-      res.status(200).json(project);
-    } else {
-      res.status(404).json({ message: 'Project not found' });
+    const projectId = req.params.id; // Extract the project ID from the URL
+
+    // Find the document that contains the 'projects' array and search inside it
+    const projectDoc = await Project.findOne({
+      'projects.id': projectId // Match the 'id' inside the projects array
+    }).select('projects -_id'); // Exclude the '_id' field from the response
+
+    // Check if the document was found
+    if (!projectDoc) {
+      return res.status(404).json({ message: 'Project document not found' });
     }
+
+    // Find the specific project inside the 'projects' array
+    const projectData = projectDoc.projects.find(p => p.id === projectId);
+
+    // Check if the specific project was found
+    if (!projectData) {
+      return res.status(404).json({ message: 'Project with the given id not found in the projects array' });
+    }
+
+    // Return the found project data (without the '_id' field)
+    res.status(200).json(projectData);
+
   } catch (err) {
     console.error('Error fetching project by ID:', err);
     res.status(500).json({ message: 'Failed to retrieve project', error: err.message });
   }
 });
+
 
 // POST: Create a new project
 app.post('/projects', async (req, res) => {
@@ -94,7 +81,11 @@ app.post('/projects', async (req, res) => {
 // PUT: Update an existing project by ID
 app.put('/projects/:id', async (req, res) => {
   try {
-    const updatedProject = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedProject = await Project.findOneAndUpdate(
+      { 'projects.id': req.params.id },
+      { $set: { 'projects.$': req.body } },
+      { new: true }
+    );
     if (updatedProject) {
       res.status(200).json(updatedProject);
     } else {
@@ -109,8 +100,11 @@ app.put('/projects/:id', async (req, res) => {
 // DELETE: Delete a project by ID
 app.delete('/projects/:id', async (req, res) => {
   try {
-    const deletedProject = await Project.findByIdAndDelete(req.params.id);
-    if (deletedProject) {
+    const updatedProject = await Project.updateOne(
+      { 'projects.id': req.params.id },
+      { $pull: { projects: { id: req.params.id } } }
+    );
+    if (updatedProject.modifiedCount > 0) {
       res.status(200).json({ message: 'Project deleted' });
     } else {
       res.status(404).json({ message: 'Project not found' });

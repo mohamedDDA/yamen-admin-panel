@@ -1,34 +1,40 @@
-// models/Project.js
 const mongoose = require('mongoose');
 
-const projectSchema = new mongoose.Schema({
+// Define the individual project schema
+const individualProjectSchema = new mongoose.Schema({
+  id: { type: String, required: true },  // Unique ID for each project
   title: {
-    en: String,
-    ar: String
+    en: { type: String },
+    ar: { type: String }
   },
   slogan: {
-    en: String,
-    ar: String
+    en: { type: String },
+    ar: { type: String }
   },
   description: {
-    en: String,
-    ar: String
+    en: { type: String },
+    ar: { type: String }
   },
   location: {
-    en: String,
-    ar: String
+    en: { type: String },
+    ar: { type: String }
   },
-  thumbnail: String,
+  thumbnail: { type: String },
   images: [String],
-  building_area: Number,
-  land_area: Number,
-  units: Number,
-  latitude: Number,
-  longitude: Number,
+  building_area: { type: Number },
+  land_area: { type: Number },
+  units: { type: Number },
+  latitude: { type: Number },
+  longitude: { type: Number },
   label: {
-    en: String,
-    ar: String
+    en: { type: String },
+    ar: { type: String }
   }
+});
+
+// Define the parent schema with the `projects` array
+const projectSchema = new mongoose.Schema({
+  projects: [individualProjectSchema]  // Array of individual projects
 });
 
 module.exports = mongoose.model('Project', projectSchema);

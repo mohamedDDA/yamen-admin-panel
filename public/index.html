@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم في المشاريع</title>
+  <style>
+    /* Base styles for improved user experience */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      direction: rtl;
+      background-color: #f4f7fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    h1,
+    h2 {
+      text-align: center;
+      color: #444;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .form-container,
+    .project-list {
+      background-color: #fff;
+      padding: 25px;
+      margin-bottom: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      padding: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #555;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      transition: border-color 0.3s;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    textarea:focus {
+      border-color: #28a745;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .button-group {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 12px 25px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 5px;
+      transition: background-color 0.3s ease, transform 0.2s;
+    }
+
+    button:hover {
+      background-color: #218838;
+      transform: translateY(-2px);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button.delete-btn {
+      background-color: #dc3545;
+    }
+
+    button.delete-btn:hover {
+      background-color: #c82333;
+    }
+
+    .thumbnail-preview {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      margin-top: 10px;
+    }
+
+    .project-item {
+      padding: 18px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .project-item  div {
+      min-width: 200px;
+    }
+
+    .project-item button {
+      margin: 0 5px;
+    }
+
+    .alert {
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 6px;
+      display: none;
+      text-align: center;
+      font-size: 16px;
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    .alert.success {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .alert.error {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .image-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .image-item {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    .image-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .image-item button {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      padding: 6px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .image-item button:hover {
+      background-color: #dc3545;
+    }
+
+    .form-container input[type="text"]::placeholder,
+    .form-container textarea::placeholder {
+      color: #aaa;
+    }
+
+    @media (max-width: 768px) {
+      .form-container,
+      .project-list {
+        padding: 15px;
+      }
+
+      button {
+        font-size: 14px;
+        padding: 10px 18px;
+      }
+
+      .image-list {
+        justify-content: center;
+      }
+
+      .project-item {
+        font-size: 13px;
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+        gap : 20px;
+      }
+
+      .project-item  div {
+        width: auto;
+        min-width: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>لوحة التحكم في المشاريع</h1>
+    <!-- Alert Messages -->
+    <div id="alert" class="alert"></div>
+
+    <!-- Project Form -->
+    <div class="form-container" id="formContainer">
+      <h2 id="formTitle">إضافة مشروع جديد</h2>
+      <form id="projectForm" onsubmit="handleFormSubmit(event)">
+        <div class="form-group"><label>عنوان المشروع (إنجليزي)</label><input type="text" id="title_en" required></div>
+        <div class="form-group"><label>عنوان المشروع (عربي)</label><input type="text" id="title_ar" required></div>
+        <div class="form-group"><label>شعار المشروع (إنجليزي)</label><input type="text" id="slogan_en" required></div>
+        <div class="form-group"><label>شعار المشروع (عربي)</label><input type="text" id="slogan_ar" required></div>
+        <div class="form-group"><label>وصف المشروع (إنجليزي)</label><textarea id="description_en" required></textarea></div>
+        <div class="form-group"><label>وصف المشروع (عربي)</label><textarea id="description_ar" required></textarea></div>
+        <div class="form-group"><label>موقع المشروع (إنجليزي)</label><input type="text" id="location_en" required></div>
+        <div class="form-group"><label>موقع المشروع (عربي)</label><input type="text" id="location_ar" required></div>
+        <div class="form-group"><label>صورة مصغرة</label><input type="text" id="thumbnail" required oninput="updateThumbnailPreview()"><img id="thumbnailPreview" class="thumbnail-preview" style="display:none;"></div>
+
+        <!-- Improved Image Input -->
+        <div class="form-group">
+          <label>صور المشروع</label>
+          <textarea id="images" placeholder="أدخل كل رابط صورة في سطر جديد" rows="5"></textarea>
+          <button type="button" id="addImageBtn" onclick="addImageInput()">إضافة رابط صورة</button>
+          <div id="imageList" class="image-list"></div>
+        </div>
+
+        <div class="form-group"><label>مساحة المبنى (م²)</label><input type="number" id="building_area" required></div>
+        <div class="form-group"><label>مساحة الأرض (م²)</label><input type="number" id="land_area" required></div>
+        <div class="form-group"><label>عدد الوحدات</label><input type="number" id="units" required></div>
+        <div class="form-group"><label>خط العرض latitude</label><input type="number" step="0.0001" id="latitude" required></div>
+        <div class="form-group"><label>خط الطول longitude</label><input type="number" step="0.0001" id="longitude" required></div>
+        <div class="form-group"><label>اسم المشروع بالخريطة (إنجليزي)</label><input type="text" id="label_en" required></div>
+        <div class="form-group"><label>اسم المشروع بالخريطة (عربي)</label><input type="text" id="label_ar" required></div>
+
+        <div class="button-group">
+          <button type="submit" id="submitBtn">إضافة المشروع</button>
+          <button type="button" id="cancelBtn" onclick="resetForm()" style="display:none;">إلغاء</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Project List -->
+    <div class="project-list" id="projectList">
+      <h2>قائمة المشاريع</h2>
+    </div>
+  </div>
+
+  <script>
+    let isEditMode = false, editId = null;
+    let imageUrls = [];
+    document.addEventListener("DOMContentLoaded", fetchProjects);
+  
+    async function fetchProjects() {
+      try {
+        const res = await fetch('/projects');
+        const projects = await res.json();
+        const projectList = document.getElementById('projectList');
+        projectList.innerHTML = '<h2>قائمة المشاريع</h2>';
+  
+        projects.forEach(p => {
+          const projectDiv = document.createElement('div');
+          projectDiv.className = 'project-item';
+          projectDiv.innerHTML = `<div>${p.title.ar} (${p.title.en})</div>
+          <button onclick="editProject('${p.id}')">تعديل</button>
+          <button class="delete-btn" onclick="deleteProject('${p.id}')">حذف</button>`;
+          projectList.appendChild(projectDiv);
+        });
+      } catch (err) {
+        showAlert('فشل في تحميل المشاريع!', 'error');
+      }
+    }
+  
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const data = {
+        title: { en: document.getElementById('title_en').value, ar: document.getElementById('title_ar').value },
+        slogan: { en: document.getElementById('slogan_en').value, ar: document.getElementById('slogan_ar').value },
+        description: { en: document.getElementById('description_en').value, ar: document.getElementById('description_ar').value },
+        location: { en: document.getElementById('location_en').value, ar: document.getElementById('location_ar').value },
+        thumbnail: document.getElementById('thumbnail').value,
+        images: imageUrls,
+        building_area: +document.getElementById('building_area').value,
+        land_area: +document.getElementById('land_area').value,
+        units: +document.getElementById('units').value,
+        latitude: +document.getElementById('latitude').value,
+        longitude: +document.getElementById('longitude').value,
+        label: { en: document.getElementById('label_en').value, ar: document.getElementById('label_ar').value }
+      };
+  
+      const method = isEditMode ? 'PUT' : 'POST', url = isEditMode ? `/projects/${editId}` : '/projects';
+      const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  
+      if (response.ok) {
+        showAlert(isEditMode ? 'تم تحديث المشروع بنجاح!' : 'تم إضافة المشروع بنجاح!', 'success');
+        resetForm();
+        fetchProjects();
+      } else {
+        showAlert("فشل في حفظ المشروع!", 'error');
+      }
+    }
+  
+    function showAlert(message, type) {
+      const alertBox = document.getElementById('alert');
+      alertBox.classList.remove('success', 'error');
+      alertBox.classList.add(type);
+      alertBox.textContent = message;
+      alertBox.style.display = 'block';
+      setTimeout(() => { alertBox.style.display = 'none'; }, 3000);
+    }
+  
+    async function editProject(id) {
+      const project = await (await fetch(`/projects/${id}`)).json();
+      isEditMode = true; editId = id; updateFormUI(project);
+    }
+  
+    async function deleteProject(id) {
+      if (confirm('هل أنت متأكد من حذف المشروع؟')) {
+        const response = await fetch(`/projects/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          showAlert('تم حذف المشروع بنجاح!', 'success');
+          fetchProjects();
+        } else {
+          showAlert("فشل في حذف المشروع!", 'error');
+        }
+      }
+    }
+  
+    function resetForm() {
+      isEditMode = false; editId = null; imageUrls = [];
+      updateFormUI();
+    }
+  
+    function updateFormUI(p = null) {
+      document.getElementById('formTitle').innerText = p ? 'تعديل المشروع' : 'إضافة مشروع جديد';
+      document.getElementById('submitBtn').innerText = p ? 'تحديث المشروع' : 'إضافة المشروع';
+      document.getElementById('cancelBtn').style.display = p ? 'inline' : 'none';
+  
+      const fields = ["title", "slogan", "description", "location", "label"];
+      fields.forEach(f => {
+        document.getElementById(`${f}_en`).value = p ? p[f].en : "";
+        document.getElementById(`${f}_ar`).value = p ? p[f].ar : "";
+      });
+  
+      if (p) {
+        document.getElementById('thumbnail').value = p.thumbnail;
+        imageUrls = p.images || [];
+        document.getElementById('images').value = imageUrls.join("\n");
+        displayImages();
+        document.getElementById('building_area').value = p.building_area;
+        document.getElementById('land_area').value = p.land_area;
+        document.getElementById('units').value = p.units;
+        document.getElementById('latitude').value = p.latitude;
+        document.getElementById('longitude').value = p.longitude;
+      } else {
+        document.getElementById('projectForm').reset();
+        document.getElementById('imageList').innerHTML = "";
+      }
+    }
+  
+    function addImageInput() {
+      const imageText = document.getElementById('images').value.trim();
+      if (imageText) {
+        // Split by newline, trim each line, and filter out empty lines
+        const imageArray = imageText.split('\n').map(url => url.trim()).filter(url => url !== '');
+        
+        // Add only unique image URLs
+        imageArray.forEach(url => {
+          if (!imageUrls.includes(url)) {
+            imageUrls.push(url);
+          }
+        });
+    
+        // Clear the textarea after adding URLs
+        document.getElementById('images').value = '';
+    
+        // Update the image list display
+        displayImages();
+      }
+    }
+  
+    function displayImages() {
+      const imageList = document.getElementById('imageList');
+      imageList.innerHTML = '';
+      imageUrls.forEach((url, index) => {
+        const imageItem = document.createElement('div');
+        imageItem.className = 'image-item';
+        imageItem.innerHTML = `<img src="${url}" alt="Image ${index + 1}"><button onclick="removeImage(${index})">حذف</button>`;
+        imageList.appendChild(imageItem);
+      });
+  
+      // Display the thumbnail preview image if provided
+      const thumbnailUrl = document.getElementById('thumbnail').value;
+      const thumbnailPreview = document.getElementById('thumbnailPreview');
+      if (thumbnailUrl) {
+        thumbnailPreview.style.display = 'block';
+        thumbnailPreview.src = thumbnailUrl;
+      } else {
+        thumbnailPreview.style.display = 'none';
+      }
+    }
+  
+    function removeImage(index) {
+      // Remove the image URL from the array
+      imageUrls.splice(index, 1);
+      
+      // Update the images textarea
+      document.getElementById('images').value = imageUrls.join("\n");
+      
+      // Update the image list display
+      displayImages();
+    }
+    
+  </script>
+  
+
+</body>
+
+</html>
