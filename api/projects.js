@@ -1,37 +1,20 @@
-// api/projects.js
+const express = require('express');
+const router = express.Router();
+const projectController = require('../controllers/projectController');
 
-const { getProjects, createProject, getProjectById, updateProject, deleteProject } = require('../controllers/projectsController');
+// Create a new project
+router.post('/', projectController.createProject);
 
-// Exporting the API handler
-module.exports = async (req, res) => {
-  switch (req.method) {
-    case 'GET':
-      if (req.query.id) {
-        // If there's an ID in the query, fetch a single project
-        return getProjectById(req, res);
-      }
-      // Otherwise, fetch all projects
-      return getProjects(req, res);
+// Get all projects
+router.get('/', projectController.getAllProjects);
 
-    case 'POST':
-      // Create a new project
-      return createProject(req, res);
+// Get a project by ID
+router.get('/:projectId', projectController.getProjectById);
 
-    case 'PUT':
-      // Update an existing project
-      if (!req.query.id) {
-        return res.status(400).json({ message: 'ID is required to update a project.' });
-      }
-      return updateProject(req, res);
+// Update a project by ID
+router.put('/:projectId', projectController.updateProject);
 
-    case 'DELETE':
-      // Delete a project by ID
-      if (!req.query.id) {
-        return res.status(400).json({ message: 'ID is required to delete a project.' });
-      }
-      return deleteProject(req, res);
+// Delete a project by ID
+router.delete('/:projectId', projectController.deleteProject);
 
-    default:
-      res.status(405).json({ message: 'Method Not Allowed' });
-  }
-};
+module.exports = router;

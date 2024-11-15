@@ -1,40 +1,43 @@
 const mongoose = require('mongoose');
 
-// Define the individual project schema
-const individualProjectSchema = new mongoose.Schema({
-  id: { type: String, required: true },  // Unique ID for each project
-  title: {
-    en: { type: String },
-    ar: { type: String }
-  },
-  slogan: {
-    en: { type: String },
-    ar: { type: String }
-  },
-  description: {
-    en: { type: String },
-    ar: { type: String }
-  },
-  location: {
-    en: { type: String },
-    ar: { type: String }
-  },
-  thumbnail: { type: String },
-  images: [String],
-  building_area: { type: Number },
-  land_area: { type: Number },
-  units: { type: Number },
-  latitude: { type: Number },
-  longitude: { type: Number },
-  label: {
-    en: { type: String },
-    ar: { type: String }
-  }
-});
-
-// Define the parent schema with the `projects` array
+// Define the project schema
 const projectSchema = new mongoose.Schema({
-  projects: [individualProjectSchema]  // Array of individual projects
+  projects: [
+    {
+      id: { type: String, required: true, unique: true },
+      title: {
+        en: String,
+        ar: String,
+      },
+      slogan: {
+        en: String,
+        ar: String,
+      },
+      description: {
+        en: String,
+        ar: String,
+      },
+      location: {
+        en: String,
+        ar: String,
+      },
+      thumbnail: String,
+      images: [String],
+      building_area: Number,
+      land_area: Number,
+      units: Number,
+      latitude: Number,
+      longitude: Number,
+      label: { // label as an object with 'en' and 'ar' keys
+        en: String,
+        ar: String,
+      },
+    }
+  ]
 });
 
-module.exports = mongoose.model('Project', projectSchema);
+
+// Create a model
+const Project = mongoose.model('Project', projectSchema);
+
+module.exports = Project;
