@@ -2,10 +2,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const path = require('path');
+const cors = require('cors');  // Import the cors package
 const projectRoutes = require('./api/projects');
 
 // Initialize express app
 const app = express();
+
+// Enable CORS for all origins (Allow all domains to access the API)
+app.use(cors());
 
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());

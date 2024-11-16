@@ -34,7 +34,6 @@ async function renderProjectList() {
   });
 }
 
-
 async function handleFormSubmit(event) {
   event.preventDefault();
 
@@ -103,8 +102,7 @@ async function handleFormSubmit(event) {
   }
 }
 
-
-
+// Function to edit a project
 async function editProject(projectId) {
   const response = await fetch(`/api/projects`);
   const data = await response.json();
@@ -118,6 +116,10 @@ async function editProject(projectId) {
   });
 
   if (selectedProject) {
+    // Clear the image preview area before resetting
+    const imageList = document.getElementById("imageList");
+    imageList.innerHTML = ''; // Clear previous previews
+
     // Fill the form with all fields, including title, slogan, etc.
     document.getElementById("title_en").value = selectedProject.title.en;
     document.getElementById("title_ar").value = selectedProject.title.ar;
@@ -145,15 +147,54 @@ async function editProject(projectId) {
     document.getElementById("formTitle").innerText = "تعديل المشروع";
     document.getElementById("cancelBtn").style.display = "inline-block";
     document.getElementById("submitBtn").innerText = "تعديل ";
-    // Set the editing project ID for submitting the update
     window.editingProjectId = selectedProject.id;
 
-    // Optional: Update thumbnail preview
+    // Update thumbnail preview
     document.getElementById("thumbnailPreview").style.display = "block";
     document.getElementById("thumbnailPreview").src = selectedProject.thumbnail;
+
+    // Render the updated image previews (after clearing the old ones)
+    renderImagePreviews(selectedProject.images);
   } else {
     showAlert('فشل في تحميل بيانات المشروع', 'error');
   }
+}
+
+// Function to render image previews with delete option
+function renderImagePreviews(images) {
+  const imageList = document.getElementById("imageList");
+  imageList.innerHTML = ''; // Clear current previews
+
+  images.forEach((link, index) => {
+    const imgDiv = document.createElement("div");
+    imgDiv.classList.add("image-item");
+    imgDiv.innerHTML = `
+      <img src="${link}" alt="Project Image">
+      <button onclick="removeImage(${index})">×</button>
+    `;
+    imageList.appendChild(imgDiv);
+  });
+}
+
+// Function to remove an image and its URL from the textarea
+function removeImage(index) {
+  const imagesTextarea = document.getElementById("images");
+  const imageLinks = imagesTextarea.value.split("\n").map(link => link.trim()).filter(link => link);
+
+  // Remove the image URL at the given index
+  imageLinks.splice(index, 1);
+  imagesTextarea.value = imageLinks.join("\n");  // Update the textarea
+
+  // Re-render image previews to reflect the updated list
+  renderImagePreviews(imageLinks);
+}
+
+// Function to add a new image URL
+function addImageInput() {
+  const imagesTextarea = document.getElementById("images");
+  const imageLinks = imagesTextarea.value.split("\n").map(link => link.trim()).filter(link => link);
+
+  renderImagePreviews(imageLinks)
 }
 
 
@@ -178,9 +219,11 @@ async function deleteProject(projectId) {
 function resetForm() {
   document.getElementById("projectForm").reset();
   document.getElementById("thumbnailPreview").style.display = "none";
+  document.getElementById("imageList").innerHTML = '';
   document.getElementById("formTitle").innerText = "إضافة مشروع جديد";
   document.getElementById("cancelBtn").style.display = "none";
-  window.editingProjectId = null;
+  document.getElementById("submitBtn").innerHTML="اضافة مشروع";
+  window.editingProjectId = null;ا
 }
 
 // Function to display alerts
@@ -204,22 +247,6 @@ function updateThumbnailPreview() {
   } else {
     thumbnailPreview.style.display = "none";
   }
-}
-
-// Add image input dynamically
-function addImageInput() {
-  const imagesTextarea = document.getElementById("images");
-  const imageLinks = imagesTextarea.value.split("\n").map(link => link.trim()).filter(link => link);
-
-  const imageList = document.getElementById("imageList");
-  imageList.innerHTML = '';
-
-  imageLinks.forEach(link => {
-    const imgDiv = document.createElement("div");
-    imgDiv.classList.add("image-item");
-    imgDiv.innerHTML = `<img src="${link}" alt="Project Image">`;
-    imageList.appendChild(imgDiv);
-  });
 }
 
 // Initial render of project list
